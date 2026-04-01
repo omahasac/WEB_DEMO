@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中央氣象署 氣象預報中心 - 颱風資訊入口網</title>
+    <!-- Tailwind CSS for Layout -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap');
+        
+        :root {
+            --oat-bg: #F7F5F2;
+            --oat-card: #FFFFFF;
+            --oat-text-primary: #4A443F;
+            --oat-text-secondary: #8B7E6B;
+            --oat-accent: #F0EEEA;
+        }
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: var(--oat-bg);
+            color: var(--oat-text-primary);
+            overflow-x: hidden;
+        }
+
+        /* OAT UI 特有的超大圓角與柔和陰影 */
+        .oat-card {
+            background: var(--oat-card);
+            border-radius: 2.5rem;
+            border: 1px solid #F0EEEA;
+            box-shadow: 0 10px 30px -10px rgba(74, 68, 63, 0.04);
+        }
+
+        /* 內容區塊隱藏與顯示 */
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+
+        /* 時間軸連線 */
+        .timeline-track {
+            position: absolute;
+            top: 2.5rem;
+            left: 10%;
+            right: 10%;
+            height: 1px;
+            background-color: #E8E2D9;
+            z-index: 0;
+        }
+
+        /* 自定義捲軸 */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--oat-bg); }
+        ::-webkit-scrollbar-thumb { background: #D1CDCA; border-radius: 10px; }
+
+        /* 動畫 */
+        .fade-in-up {
+            animation: fadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="selection:bg-[#E8E2D9] selection:text-[#4A443F]">
+
+    <!-- 頂部導覽列 -->
+    <nav class="fixed top-0 inset-x-0 h-20 bg-[#F7F5F2]/80 backdrop-blur-xl z-[100] border-b border-[#F0EEEA]">
+        <div class="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
+            <div class="flex items-center gap-3 cursor-pointer group" id="nav-logo">
+                <div class="w-11 h-11 bg-[#4A443F] rounded-2xl flex items-center justify-center group-hover:rotate-6 transition-transform shadow-lg">
+                    <i data-lucide="compass" class="text-white w-6 h-6"></i>
+                </div>
+                <div>
+                    <div class="text-sm font-black text-[#4A443F] leading-none tracking-tighter uppercase">
+                        CWA<span class="text-[#8B7E6B]">.WFC</span>
+                    </div>
+                    <div class="text-[10px] font-bold text-[#8B7E6B] tracking-widest uppercase mt-1">
+                        中央氣象署 氣象預報中心
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-6">
+                <div class="hidden md:flex flex-col items-end">
+                    <div id="display-date" class="text-xs font-bold text-[#4A443F]">2026年4月1日</div>
+                    <div id="display-time" class="text-[10px] font-bold text-[#8B7E6B] tracking-widest font-mono uppercase">17:15:00 TPE</div>
+                </div>
+                <div class="h-8 w-[1px] bg-[#E8E2D9] hidden md:block"></div>
+                <div class="px-4 py-1.5 bg-[#F0EEEA] rounded-full text-[#8B7E6B] text-[10px] font-black tracking-widest uppercase">
+                    Decision Portal
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要容器 -->
+    <main class="max-w-7xl mx-auto px-6 pt-32 pb-24">
+        
+        <!-- 首頁檢視 -->
+        <div id="view-home" class="view-section active animate-in fade-in duration-1000">
+            <section class="text-center space-y-6 mb-32 mt-10">
+                <h1 class="text-5xl md:text-6xl font-light text-[#4A443F] tracking-tight">
+                    颱風資訊<span class="font-bold">導覽門戶</span>
+                </h1>
+                <p class="text-[#8B7E6B] text-lg max-w-xl mx-auto font-light leading-relaxed">
+                    選取下方的作業階段，進入對應的子系統網頁清單。
+                </p>
+            </section>
+
+            <!-- 圖像化時間軸 -->
+            <section class="max-w-5xl mx-auto px-6 relative py-10">
+                <div class="timeline-track"></div>
+                <div class="relative flex justify-between items-center" id="timeline-target">
+                    <!-- JS 動態生成 -->
+                </div>
+            </section>
+        </div>
+
+        <!-- 詳細階段檢視 -->
+        <div id="view-stage" class="view-section fade-in-up">
+            <button id="btn-back" class="flex items-center text-[#8B7E6B] hover:text-[#4A443F] mb-10 font-bold text-sm transition-colors group">
+                <i data-lucide="arrow-left" class="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform"></i> 返回入口導覽
+            </button>
+
+            <div class="oat-card overflow-hidden border-none shadow-2xl shadow-[#4A443F]/5">
+                <!-- 標題區 -->
+                <div id="stage-hero" class="p-12 md:p-16 flex flex-col md:flex-row justify-between items-start md:items-center gap-8 bg-[#F0EEEA] transition-colors duration-500">
+                    <div class="flex items-center gap-8">
+                        <div id="stage-icon-box" class="w-24 h-24 bg-white rounded-[2rem] shadow-sm flex items-center justify-center text-[#4A443F]">
+                            <!-- Icon -->
+                        </div>
+                        <div>
+                            <h2 id="stage-title" class="text-4xl md:text-5xl font-bold tracking-tight text-[#4A443F]">階段名稱</h2>
+                            <p class="text-[#8B7E6B] font-medium text-sm mt-3 flex items-center gap-2 italic">
+                                <i data-lucide="layers" class="w-4 h-4"></i> 中央氣象署 氣象預報中心 作業階段
+                            </p>
+                        </div>
+                    </div>
+                    <div class="bg-white/50 backdrop-blur-sm px-8 py-5 rounded-[2rem] border border-white/20">
+                        <div class="text-[10px] font-black text-[#8B7E6B] uppercase tracking-[0.2em] mb-1">Node Identity</div>
+                        <div id="stage-id-label" class="text-xl font-bold text-[#4A443F]">NODE</div>
+                    </div>
+                </div>
+                
+                <div class="p-12 md:p-16 bg-white">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-16">
+                        <!-- 左側：連結清單 -->
+                        <div class="space-y-8">
+                            <h4 class="text-xs font-black text-[#8B7E6B] uppercase tracking-widest flex items-center gap-2">
+                                <i data-lucide="link-2" class="w-4 h-4"></i> 子系統網頁連結
+                            </h4>
+                            <div class="space-y-4" id="sub-links-target">
+                                <!-- 動態連結 -->
+                            </div>
+                        </div>
+
+                        <!-- 右側：描述 -->
+                        <div class="space-y-8">
+                            <div class="bg-[#F7F5F2] rounded-[3rem] p-10 border border-[#F0EEEA]">
+                                <h4 class="font-bold text-[#4A443F] text-lg mb-6 flex items-center gap-2">
+                                    <i data-lucide="info" class="w-5 h-5 text-[#8B7E6B]"></i> 作業階段描述
+                                </h4>
+                                <p id="stage-desc" class="text-[#8B7E6B] text-md leading-relaxed font-light">
+                                    作業內容說明載入中...
+                                </p>
+                            </div>
+
+                            <div class="oat-card p-10 bg-[#F0EEEA]/30 border-[#F0EEEA]">
+                                <h5 class="text-[10px] font-black text-[#8B7E6B] uppercase tracking-widest mb-6">輔助資源</h5>
+                                <div class="grid grid-cols-2 gap-6">
+                                    <div class="cursor-pointer group">
+                                        <div class="text-sm font-bold text-[#4A443F] group-hover:text-[#8B7E6B]">SOP 文件</div>
+                                        <div class="text-[10px] text-[#8B7E6B]">Standard Operating Procedure</div>
+                                    </div>
+                                    <div class="cursor-pointer group">
+                                        <div class="text-sm font-bold text-[#4A443F] group-hover:text-[#8B7E6B]">技術參考手冊</div>
+                                        <div class="text-[10px] text-[#8B7E6B]">Technical Manual</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 頁尾 -->
+    <footer class="bg-white border-t border-[#F0EEEA] pt-24 pb-12">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-8 mb-12">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-[#4A443F] rounded-lg flex items-center justify-center text-white">
+                        <i data-lucide="navigation-2" class="w-4 h-4"></i>
+                    </div>
+                    <span class="font-black text-[#4A443F] tracking-tighter uppercase">CWA Typhoon Portal</span>
+                </div>
+                <div class="text-[10px] font-bold text-[#8B7E6B] uppercase tracking-widest text-center">
+                    © 2026 Central Weather Administration. 
+                </div>
+            </div>
+            <div class="pt-8 border-t border-[#F7F5F2] flex justify-center items-center gap-8 text-[9px] font-black text-[#8B7E6B] uppercase tracking-[0.3em]">
+                <span>Status: Optimal</span>
+                <span>Security: Tier 1</span>
+                <span>Location: WFC-TPE</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 資料定義 (對應 image_9d8721.png)
+        const typhoonStages = [
+            {
+                id: 'early-warning',
+                title: '早期預警',
+                icon: 'brain-circuit',
+                color: '#E8E2D9', // Oatmeal accent
+                accentText: '#8B7E6B',
+                desc: '分析 AI 預報 MSLP 與侵台機率，結合整合網頁資訊，提供颱風生成初期之長程預警判斷基礎。',
+                sublinks: [
+                    'AI預報MSLP',
+                    '即時AI颱風侵台機率',
+                    '新版颱風資訊整合網頁(純琨)'
+                ]
+            },
+            {
+                id: 'intelligence',
+                title: '情資研判',
+                icon: 'file-search',
+                color: '#D1CDCA',
+                accentText: '#4A443F',
+                desc: '整合相似路徑分析與整合網頁情資，進行颱風威脅與潛勢區域之精準研判。',
+                sublinks: [
+                    '相似路徑分析',
+                    '新版颱風資訊整合網頁(純琨)'
+                ]
+            },
+            {
+                id: 'monitoring',
+                title: '守視',
+                icon: 'eye',
+                color: '#E0DDD9',
+                accentText: '#7D756D',
+                desc: '進入守視階段，重點監控總雨量、雨量表格以及鄉鎮郵票圖，掌握局地風雨細微變化。',
+                sublinks: [
+                    '新版總雨量檢視',
+                    '雨量預估表格',
+                    '風力/雨量預報(鄉鎮郵票圖)'
+                ]
+            },
+            {
+                id: 'operations',
+                title: '警戒作業',
+                icon: 'shield-alert',
+                color: '#CBC5BF',
+                accentText: '#4A443F',
+                desc: '警報發布期間之核心作業。包含風力表、接觸時間、觀測地圖、定量降水及雨量推估檢視。',
+                sublinks: [
+                    '風力預測表',
+                    '陸上颱風警戒與暴風圈接觸縣市接觸時間表',
+                    '即時風力/雨量觀測地圖',
+                    '定量降水預報-建議系統',
+                    '總雨量預估檢視&前置推估檢視'
+                ]
+            },
+            {
+                id: 'history',
+                title: '歷史資料查詢',
+                icon: 'database',
+                color: '#DED9D4',
+                accentText: '#8B7E6B',
+                desc: '事後校驗與歸檔作業。包含預報檢索、各類強度路徑校驗，以及官方與主觀預報之逐年精進分析。',
+                sublinks: [
+                    '官方預報檢索',
+                    '校驗：強度,路徑,移速',
+                    '官方預報逐年校驗',
+                    '主觀預報逐年校驗'
+                ]
+            }
+        ];
+
+        $(document).ready(function() {
+            renderTimeline();
+            updateClock();
+            setInterval(updateClock, 1000);
+            lucide.createIcons();
+
+            $('#nav-logo, #btn-back').on('click', function() {
+                showView('home');
+            });
+        });
+
+        // 渲染首頁時間軸
+        function renderTimeline() {
+            const $target = $('#timeline-target');
+            typhoonStages.forEach((s, idx) => {
+                const html = `
+                    <div class="relative z-10 flex flex-col items-center group w-40 cursor-pointer" onclick="goToStage('${s.id}')">
+                        <div class="w-20 h-20 rounded-[2.5rem] bg-white border border-[#F0EEEA] flex items-center justify-center text-[#8B7E6B] shadow-sm transition-all duration-500 group-hover:bg-[#4A443F] group-hover:text-white group-hover:scale-110 group-hover:shadow-xl">
+                            <i data-lucide="${s.icon}" class="w-9 h-9"></i>
+                        </div>
+                        <div class="mt-6 text-center">
+                            <div class="text-[10px] font-black text-[#8B7E6B] uppercase tracking-widest mb-1">NODE 0${idx+1}</div>
+                            <div class="text-lg font-bold text-[#4A443F] transition-colors group-hover:text-[#8B7E6B]">${s.title}</div>
+                        </div>
+                    </div>
+                `;
+                $target.append(html);
+            });
+        }
+
+        // 切換視圖
+        function showView(viewId) {
+            $('.view-section').removeClass('active');
+            $(`#view-${viewId}`).addClass('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // 進入詳細頁
+        function goToStage(stageId) {
+            const stage = typhoonStages.find(x => x.id === stageId);
+            if (!stage) return;
+
+            // 更新內容
+            $('#stage-hero').css('background-color', stage.color);
+            $('#stage-icon-box').html(`<i data-lucide="${stage.icon}" class="w-12 h-12" style="color: ${stage.accentText}"></i>`);
+            $('#stage-title').text(stage.title).css('color', stage.accentText);
+            $('#stage-id-label').text(stage.id.toUpperCase().replace('-', ' ')).css('color', stage.accentText);
+            $('#stage-desc').text(stage.desc);
+
+            // 渲染連結
+            const $linksTarget = $('#sub-links-target').empty();
+            stage.sublinks.forEach(link => {
+                const linkHtml = `
+                    <div class="p-8 bg-white hover:bg-[#F7F5F2] border border-[#F0EEEA] hover:border-[#D1CDCA] rounded-[2rem] flex items-center justify-between cursor-pointer group transition-all shadow-sm hover:shadow-md">
+                        <div class="flex items-center gap-4">
+                            <div class="w-2 h-2 rounded-full bg-[#E8E2D9] group-hover:bg-[#4A443F] transition-colors"></div>
+                            <span class="text-md font-bold text-[#4A443F] group-hover:text-[#8B7E6B]">${link}</span>
+                        </div>
+                        <i data-lucide="arrow-right" class="w-5 h-5 text-[#E8E2D9] group-hover:text-[#4A443F] group-hover:translate-x-1 transition-all"></i>
+                    </div>
+                `;
+                $linksTarget.append(linkHtml);
+            });
+
+            lucide.createIcons();
+            showView('stage');
+        }
+
+        // 系統時鐘
+        function updateClock() {
+            const now = new Date();
+            const year = 2026;
+            const dateStr = `${year}年${now.getMonth() + 1}月${now.getDate()}日`;
+            const timeStr = now.toLocaleTimeString('zh-TW', { hour12: false }) + " TPE";
+            $('#display-date').text(dateStr);
+            $('#display-time').text(timeStr);
+        }
+    </script>
+</body>
+</html>
