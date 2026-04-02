@@ -94,27 +94,42 @@
             background: #ffffff;
         }
 
-        /* Active State */
-        .nav-label.active {
-            color: var(--google-blue);
-            background-color: #e8f0fe;
-        }
-        
+        /* Navbar Items Styling */
         .nav-label {
-            padding: 8px 16px;
-            border-radius: 4px;
+            height: var(--nav-height);
+            padding: 0 16px;
             font-size: 14px;
             font-weight: 500;
             color: var(--google-gray-600);
             transition: all 0.2s;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 8px;
+            position: relative;
+            border-bottom: 3px solid transparent;
         }
 
         .nav-label:hover {
             background-color: var(--google-gray-100);
             color: var(--google-gray-700);
+        }
+
+        .nav-label:hover .icon-wrapper {
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.15));
+            transform: translateY(-1px);
+        }
+
+        /* Active State with Colored Underline */
+        .nav-label.active {
+            color: var(--google-gray-700);
+            background-color: var(--google-gray-100);
+        }
+
+        .icon-wrapper {
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         /* Welcome Screen Overlay */
@@ -164,34 +179,20 @@
         </div>
 
         <!-- Navigation Groups -->
-        <div class="flex items-center gap-1 flex-grow" id="nav-container">
+        <div class="flex items-center flex-grow" id="nav-container">
             <!-- JS 內容注入 -->
         </div>
 
-        <!-- Right Side Stats -->
-        <div class="flex items-center gap-6 ml-4">
-            <div class="hidden lg:flex flex-col items-end border-r border-slate-200 pr-6">
-                <div id="clock-date" class="text-xs font-medium text-slate-900">2026年4月1日</div>
-                <div id="clock-time" class="text-[10px] font-mono font-bold text-blue-600 uppercase tracking-tighter">20:00:00 TPE</div>
-            </div>
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 cursor-pointer">
-                    <i data-lucide="settings" class="w-4 h-4"></i>
-                </div>
-                <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xs">
-                    WFC
-                </div>
-            </div>
-        </div>
+        <!-- Right Side Stats Removed as requested -->
     </nav>
 
     <!-- Welcome Overlay -->
     <div id="welcome-screen">
         <div class="max-w-2xl text-center space-y-8 animate-in fade-in duration-700">
-            <div class="flex justify-center gap-4 mb-4">
-                <div class="w-12 h-12 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-lg"><i data-lucide="zap" class="w-6 h-6"></i></div>
-                <div class="w-12 h-12 rounded-lg bg-red-500 flex items-center justify-center text-white shadow-lg"><i data-lucide="activity" class="w-6 h-6"></i></div>
-                <div class="w-12 h-12 rounded-lg bg-green-500 flex items-center justify-center text-white shadow-lg"><i data-lucide="bar-chart" class="w-6 h-6"></i></div>
+            <div class="flex justify-center gap-6 mb-4">
+                <div class="w-16 h-16 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-lg"><i data-lucide="zap" class="w-8 h-8"></i></div>
+                <div class="w-16 h-16 rounded-xl bg-red-500 flex items-center justify-center text-white shadow-lg"><i data-lucide="activity" class="w-8 h-8"></i></div>
+                <div class="w-16 h-16 rounded-xl bg-green-500 flex items-center justify-center text-white shadow-lg"><i data-lucide="bar-chart" class="w-8 h-8"></i></div>
             </div>
             <h1 class="text-4xl font-normal text-slate-800 tracking-tight">
                 歡迎使用 <span class="font-bold text-blue-600">颱風資訊整合門戶</span>
@@ -204,20 +205,7 @@
                     開始工作
                 </button>
             </div>
-            <div class="pt-12 grid grid-cols-3 gap-8 opacity-40 grayscale">
-                <div class="flex flex-col items-center gap-2">
-                    <i data-lucide="database" class="w-5 h-5"></i>
-                    <span class="text-[10px] font-bold uppercase tracking-widest">BigQuery Archive</span>
-                </div>
-                <div class="flex flex-col items-center gap-2">
-                    <i data-lucide="cpu" class="w-5 h-5"></i>
-                    <span class="text-[10px] font-bold uppercase tracking-widest">Vertex AI Model</span>
-                </div>
-                <div class="flex flex-col items-center gap-2">
-                    <i data-lucide="globe" class="w-5 h-5"></i>
-                    <span class="text-[10px] font-bold uppercase tracking-widest">Real-time GIS</span>
-                </div>
-            </div>
+            <!-- Bottom tech icons removed as requested -->
         </div>
     </div>
 
@@ -225,12 +213,13 @@
     <iframe id="main-viewport" src="about:blank"></iframe>
 
     <script>
-        // 資料物件 (依據 image_9d8721.png 最新連結更新)
+        // 資料物件 (包含各階段配色)
         const portalData = [
             {
                 id: 'early-warning',
                 title: '早期預警',
                 icon: 'brain',
+                color: '#4285F4', // Google Blue
                 links: [
                     { name: 'AI預報MSLP', url: '#' },
                     { name: '即時AI颱風侵台機率', url: '#' },
@@ -241,6 +230,7 @@
                 id: 'intelligence',
                 title: '情資研判',
                 icon: 'search',
+                color: '#EA4335', // Google Red
                 links: [
                     { name: '相似路徑分析', url: '#' },
                     { name: '新版颱風資訊整合網頁(純琨)', url: '#' }
@@ -250,6 +240,7 @@
                 id: 'monitoring',
                 title: '守視',
                 icon: 'eye',
+                color: '#FBBC04', // Google Yellow
                 links: [
                     { name: '新版總雨量檢視', url: '#' },
                     { name: '雨量預估表格', url: '#' },
@@ -260,6 +251,7 @@
                 id: 'operations',
                 title: '警戒作業',
                 icon: 'shield',
+                color: '#34A853', // Google Green
                 links: [
                     { name: '風力預測表', url: '#' },
                     { name: '陸上颱風警戒與暴風圈接觸縣市接觸時間表', url: '#' },
@@ -272,6 +264,7 @@
                 id: 'history',
                 title: '歷史資料查詢',
                 icon: 'history',
+                color: '#9333EA', // Purple
                 links: [
                     { name: '官方預報檢索', url: '#' },
                     { name: '校驗：強度,路徑,移速', url: '#' },
@@ -283,14 +276,13 @@
 
         $(document).ready(function() {
             renderNavigation();
-            startClock();
             lucide.createIcons();
 
             // 回首頁邏輯
             $('#btn-home').on('click', function() {
                 $('#welcome-screen').fadeIn(200);
                 $('#main-viewport').attr('src', 'about:blank');
-                $('.nav-label').removeClass('active');
+                $('.nav-label').removeClass('active').css('border-bottom-color', 'transparent');
             });
         });
 
@@ -301,7 +293,7 @@
                 let dropdownContent = '';
                 stage.links.forEach(link => {
                     dropdownContent += `
-                        <div class="dropdown-item cursor-pointer group" onclick="openModule('${link.url}', '${link.name}', '${stage.id}')">
+                        <div class="dropdown-item cursor-pointer group" onclick="openModule('${link.url}', '${link.name}', '${stage.id}', '${stage.color}')">
                             <span>${link.name}</span>
                             <i data-lucide="arrow-right" class="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity"></i>
                         </div>
@@ -310,8 +302,10 @@
 
                 const html = `
                     <div class="nav-group relative">
-                        <div class="nav-label cursor-pointer" data-id="${stage.id}">
-                            <i data-lucide="${stage.icon}" class="w-4 h-4"></i>
+                        <div class="nav-label cursor-pointer" data-id="${stage.id}" data-color="${stage.color}">
+                            <div class="icon-wrapper" style="color: ${stage.color}">
+                                <i data-lucide="${stage.icon}" class="w-5 h-5"></i>
+                            </div>
                             ${stage.title}
                             <i data-lucide="chevron-down" class="w-3 h-3 ml-1 opacity-50"></i>
                         </div>
@@ -329,28 +323,19 @@
         }
 
         // 開啟模組
-        function openModule(url, name, stageId) {
+        function openModule(url, name, stageId, stageColor) {
             $('#welcome-screen').fadeOut(200);
-            $('.nav-label').removeClass('active');
-            $(`.nav-label[data-id="${stageId}"]`).addClass('active');
+            
+            // 重置所有標籤狀態
+            $('.nav-label').removeClass('active').css('border-bottom-color', 'transparent');
+            
+            // 啟用當前階段標籤與底線
+            const $activeLabel = $(`.nav-label[data-id="${stageId}"]`);
+            $activeLabel.addClass('active').css('border-bottom-color', stageColor);
 
             // 模擬載入 URL
             console.log(`系統提示: 正在載入模組 [${name}]`);
             // $('#main-viewport').attr('src', url);
-        }
-
-        // 時鐘功能
-        function startClock() {
-            function update() {
-                const now = new Date();
-                const year = 2026;
-                const dateStr = `${year}年${now.getMonth() + 1}月${now.getDate()}日`;
-                const timeStr = now.toLocaleTimeString('zh-TW', { hour12: false }) + " TPE";
-                $('#clock-date').text(dateStr);
-                $('#clock-time').text(timeStr);
-            }
-            update();
-            setInterval(update, 1000);
         }
     </script>
 </body>
